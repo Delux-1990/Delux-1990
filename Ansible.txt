@@ -1,0 +1,120 @@
+Уроки по Ansible
+https://www.youtube.com/playlist?list=PLg5SS_4L6LYufspdPupdynbMQTBnZd31N
+sudo apt update && apt update -y
+sudo apt install ssh
+sudo nano /etc/ssh/sshd_config
+Раскомментировать строки
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+//save config
+sudo service sshd restart
+sudo nano /etc/sudoers.d/user (добавляем пользователю права на запуск команд sudo без пароля)
+user ALL=(ALL:ALL) NOPASSWD:ALL
+//save config
+sudo init 6
+
+ssh-keygen
+ssh-copy-id user@10.1.0.11
+ssh-copy-id user@10.1.0.12
+ssh-copy-id user@10.1.0.21
+ssh-copy-id user@10.1.0.22
+ssh-copy-id user@10.1.0.23
+
+Копируем ключ со своей системы на удалённые машины.
+nano /home/user/.ssh/authorized_keys
+
+user@userVM:~/ansible$ nano hosts.txt
+
+[staging_servers]
+ubuntu1  ansible_host=172.24.206.119 ansible_user=user ansible_ssh_private_kep_file=/home/user/.ssh/authorized_keys
+
+[prod_servers]
+ubuntu2  ansible_host=172.24.197.39
+ubuntu3  ansible_host=172.24.199.155
+
+[prod_servers:vars]
+ansible_user=user
+ansible_ssh_private_kep_file=/home/user/.ssh/authorized_keys
+
+[windows_servers]
+windows2022  ansible_host=172.24.195.167
+win10  ansible_host=172.24.199.251
+
+[windows_servers:vars]
+ansible_user = user
+ansible_password = ******
+ansible_port = 5986
+ansible_connection = winrm
+ansible_winrm_server_cert_validation = ignore
+
+ansible all -m ping (Проверить связь со всеми серверами)
+ansible windows_servers -m win_ping (Проверить связь с Windows серверами входящих в группу windows_servers)
+
+ansible-inventory --list (Список всех хостов и зависимостей)
+ansible-inventory --graph
+
+ansible staging_servers -m setup (выводит список всех атрибутов сервера)
+
+ansible all -m shell -a "uptime" (запустить команду в shell на всех серверах)
+
+ansible all -m shell -a "rm -rf /" -b (Самая страшная команда, никогда не запускать :D )
+
+ansible all -m copy -a "src=privet.txt dest=/home mode=777" -b (скопировать файл на все сервера)
+ansible all -m file -a "path=/home/privet.txt state=absent" -b (удалить файл со всех серверов)
+ansible all -m get_url -a "url=https://download.anydesk.com/AnyDesk.exe dest=/home" -b (скачать файл на все сервера)
+
+ansible all -m apt -a "name=stress state=latest" -b (Установить приложение на все сервера)
+ansible all -m apt -a "name=stress state=absent" -b (Удалить приложение со всех серверов)
+
+ansible all -m uri -a "url=http://www.adv-it.net" (получить информацию о сайте)
+ansible all -m uri -a "url=http://www.adv-it.net return_content=yes" (Отобразить содержимое сайта)
+
+ansible all -m apt -a "name=apache2 state=latest" -b (Установить веб сервер на все сервера)
+ansible all -m service -a "name=httpd state=started enabled=yes" -b (Изменить настройку серсиса)
+
+user@userVM:~/ansible$ nano hosts.txt (Пример заполнения фала, как описывать группы и зависимости.)
+[staging_DB]
+192.168.1.1
+192.168.1.2
+
+[staging_WEB]
+192.168.2.1
+192.168.2.2
+
+[staging_APP]
+192.168.3.1
+192.168.3.2
+
+[staging_ALL:children]
+staging_DB
+staging_WEB
+staging_APP
+
+[prod_DB]
+10.10.1.1
+
+[prod_WEB]
+10.10.2.2
+
+[prod_APP]
+10.10.3.3
+
+[prod_ALL:children]
+prod_DB
+prod_WEB
+prod_APP
+
+[DB_ALL:children]
+staging_DB
+prod_DB
+
+[APP_ALL:children]
+staging_APP
+prod_APP
+
+[RAZNOE:children]
+APP_ALL
+DB_ALL
+
+[RAZNOE:vars]
+message=Hello (Получается переменная распостраняется на все сервера которые включены во вложенные группы)
