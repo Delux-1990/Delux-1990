@@ -1,0 +1,71 @@
+sudo apt install -y ssh
+sudo groupadd -g 777 developers
+sudo usermod -a -G developers user
+sudo apt install curl
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo apt-get update
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+https://ecoscada.visualstudio.com/Data%20Quality/_settings/agentqueues?queueId=1973&view=agents
+sudo mkdir /myagent && cd /myagent
+sudo mkdir /opt/DQ_DAG/
+sudo setfacl -R -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /opt/DQ_DAG/
+sudo setfacl -d -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /opt/DQ_DAG/
+sudo setfacl -R -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /myagent
+sudo setfacl -d -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /myagent
+sudo setfacl -R -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /var/lib/docker
+sudo setfacl -d -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /var/lib/docker
+sudo setfacl -R -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /usr/local/bin/docker-compose
+sudo nano /lib/systemd/system/docker.socket
+SocketMode=0660 -> SocketMode=0770
+sudo usermod -aG docker $USER
+sudo init 6
+sudo getfacl /var/run/docker.sock
+reconnect to SSH
+sudo apt-get install -y wget
+cd /myagent
+wget https://vstsagentpackage.azureedge.net/agent/2.195.2/vsts-agent-linux-x64-2.195.2.tar.gz
+tar zxvf /myagent/vsts-agent-linux-x64-2.195.2.tar.gz
+./config.sh
+Enter server URL > https://dev.azure.com/ecoscada
+Enter authentication type (press enter for PAT) -> PAT
+2ghqflgehoxaxclos6d5ve3nxolmyn2yhj4ettvxmctsxhxaheaq
+Enter agent pool (press enter for default) > i.LECO RU Test Agent Pool
+Enter agent name (press enter for user-vm) > Some name Linux VM
+Enter work folder (press enter for _work) > -> Enter
+/myagent/run.sh
+
+
+sudo setfacl -R -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /azagent
+sudo setfacl -d -m g:lu.l.sec.allow.log.on.ubuntu.users@OCELI.ADS:rwx /azagent
+
+sudo setfacl -R -m g:LU.L.SEC.Allow.log.on.Ubuntu.users:rwx /airflow-docker
+sudo setfacl -d -m g:LU.L.SEC.Allow.log.on.Ubuntu.users:rwx /airflow-docker
+
+
+sudo chown -R ilecoadmin /myagent
+sudo chown -R ilecoadmin /var/lib/docker
+sudo chown -R ilecoadmin /opt/DQ_DAG/
+sudo chown -R ilecoadmin /usr/local/bin/docker-compose
+sudo nano /lib/systemd/system/docker.socket
+SocketMode=0660 -> SocketMode=0770
+sudo usermod -aG docker $USER
+sudo init 6
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
+Test-NetConnection -ComputerName 20.224.197.191 -Port 22
+
+
+mkdir azagent;cd azagent;curl -fkSL -o vstsagent.tar.gz https://vstsagentpackage.azureedge.net/agent/2.204.0/vsts-agent-linux-x64-2.204.0.tar.gz;tar -zxvf vstsagent.tar.gz; if [ -x "$(command -v systemctl)" ]; then ./config.sh --deploymentgroup --deploymentgroupname "Metadata Framework-Simulations-RU-Server-Docker" --acceptteeeula --agent $HOSTNAME --url https://ecoscada.visualstudio.com/ --work _work --projectname 'Metadata Framework' --auth PAT --token 33vlrbsf7siwn4b76h6xh2zknbfdganptf7njk6kwlcdoctehj3a --runasservice; sudo ./svc.sh install; sudo ./svc.sh start; else ./config.sh --deploymentgroup --deploymentgroupname "Metadata Framework-Simulations-RU-Server-Docker" --acceptteeeula --agent $HOSTNAME --url https://ecoscada.visualstudio.com/ --work _work --projectname 'Metadata Framework' --auth PAT --token 33vlrbsf7siwn4b76h6xh2zknbfdganptf7njk6kwlcdoctehj3a; ./run.sh; fi
+
+Domain Users Domain Admins Schema Admins Enterprise Admins Group Policy Creator Owners Denied RODC Password Replication Group GH.L.SEC.Allow.log.on.RDP docker-users LU.L.SEC.Allow.log.on.Ubuntu.users LU.L.SEC.Allow.log.on.Ubuntu.admin Roaming User Profiles Users and Computers
