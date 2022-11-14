@@ -1,0 +1,38 @@
+private_key
+yOV2I2bzpTzwXzHKVu5W4ew4lAd/W0MNwaMTR3vmq0s=
+pub_key
+PO2UUm3HVioHDPQFx54dE0o7HewfNXJ9vMzHEp1bd2M=
+
+Добавить клиента WG
+sudo wg set wg0 peer xlm9tu4FBOMePca0yXX4ni8DvGed6cW/YUs9C1ytpTY= allowed-ips 172.16.15.2
+sudo wg set wg0 peer 6uKfk/SorMlMC7ScVDgb7x91ALNrYcAiBBQ4luN/fW4= allowed-ips 172.16.15.3
+
+default via 185.234.114.129 dev ens3 onlink
+
+[Interface]
+PrivateKey = yOV2I2bzpTzwXzHKVu5W4ew4lAd/W0MNwaMTR3vmq0s=
+Address = 172.16.15.1/24, fd0d:86fa:c3bc::1/64
+ListenPort = 51820
+SaveConfig = true
+
+PostUp = ufw route allow in on wg0 out on ens3
+PostUp = iptables -t nat -I POSTROUTING -o ens3 -j MASQUERADE
+PostUp = ip6tables -t nat -I POSTROUTING -o ens3 -j MASQUERADE
+PreDown = ufw route delete allow in on wg0 out on ens3
+PreDown = iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+PreDown = ip6tables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+
+
+netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+netsh advfirewall firewall add rule name="Wireguard allow 51820 udp" protocol=udp localport=51820 dir=in action=allow
+
+Конфиг Клиента 
+[Interface]
+PrivateKey = EOISlY2UFXt7PNqsTQNNswXvD2/ibl1Pd4q13Yczqmg=
+Address = 172.16.15.2/24
+DNS = 8.8.8.8
+
+[Peer]
+PublicKey = PO2UUm3HVioHDPQFx54dE0o7HewfNXJ9vMzHEp1bd2M=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 185.234.114.192:51820
