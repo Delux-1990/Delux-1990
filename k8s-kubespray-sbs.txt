@@ -1,0 +1,65 @@
+//Копируем репозиторий для развёртывания k8s на один из серверов
+git clone https://github.com/kubernetes-sigs/kubespray.git
+//выводим список стабильных версий
+git tag
+//создаём локальную ветку с содержимым тега
+git checkout -b v2.20.0 tags/v2.20.0
+//посмотреть лог
+git log
+//создаём виртуальное окружение
+virtualenv -p python3 ./venv-kubespray
+//активируем окружение
+source ./venv-kubespray/bin/activate
+//устанавливаем зависимости
+pip install -r ~/kubespray/requirements.txt
+//копируем пример конфигурации хостов Ansible
+cp -a ~/kubespray/inventory/sample/ ~/kubespray/inventory/unixway1
+//Редактируем конфигурацию хостов
+nano ~/kubespray/inventory/unixway1/inventory.ini
+//Моя конфигурация
+# ## Configure 'ip' variable to bind kubernetes services on a
+# ## different ip than the default iface
+# ## We should set etcd_member_name for etcd cluster. The node that is not a etcd member do not need to set the value, or can set the empty string value.
+[all]
+node1 ansible_host=10.1.0.11
+node2 ansible_host=10.1.0.12
+node3 ansible_host=10.1.0.13
+node4 ansible_host=10.1.0.21
+node5 ansible_host=10.1.0.22
+node6 ansible_host=10.1.0.23
+
+# ## configure a bastion host if your nodes are not directly reachable
+# [bastion]
+# bastion ansible_host=x.x.x.x ansible_user=some_user
+
+[kube_control_plane]
+node1
+node2
+node3
+
+[etcd]
+node1
+node2
+node3
+
+[kube_node]
+node4
+node5
+node6
+
+[calico_rr]
+
+[k8s_cluster:children]
+kube_control_plane
+kube_node
+calico_rr
+//для настройки кластера можно менять содержимое файлов
+nano ~/kubespray/inventory/unixway1/group_vars/all/all.yml
+nano ~/kubespray/inventory/unixway1/group_vars/k8s_cluster/k8s_cluster.yml
+//настроить SSH доступы по ключам из инструкции по SSH-Key
+//проверяем конфигурацию Ansible файла inventory.ini
+ansible -i ~/kubespray/inventory/unixway1/inventory.ini all -m shell -a 'w' --private-key ~/.ssh/id_rsa --user user --become --become-user=user
+//Запускаем скрипт установки
+ansible-playbook -i ~/kubespray/inventory/unixway1/inventory.ini --private-key ~/.ssh/id_rsa --user user --become --become-user=root ~/kubespray/cluster.yml
+
+
